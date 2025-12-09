@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PassportMaker - Print Layout &amp; Preview</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Noto+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0d7ff2",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#101922",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "Noto Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-[#0d141c] dark:text-white font-display flex flex-col h-screen overflow-hidden">
+<!-- TopNavBar -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#e7edf4] dark:border-b-slate-700 bg-white dark:bg-slate-900 px-6 py-3 shrink-0 z-20">
+<div class="flex items-center gap-4 text-[#0d141c] dark:text-white">
+<div class="size-8 flex items-center justify-center rounded bg-primary/10 text-primary">
+<span class="material-symbols-outlined text-xl">perm_identity</span>
+</div>
+<h2 class="text-lg font-bold leading-tight tracking-[-0.015em]">PassportMaker</h2>
+</div>
+<div class="flex flex-1 justify-end gap-8">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-8 ring-2 ring-white dark:ring-slate-800 shadow-sm" data-alt="User avatar placeholder showing a generic gradient" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuC8P17ImqJ_K5gThgI_HPU0BFnwhy7uu5d-ki4tsEmMHLZBAccKzQbOyi2fDlrttNqqMeK8X5Je3mIQCLjl5bOaNuYsgOR_pkNV2R3cwwfC6K7YYa_GxUSW0gJQ1p1ja_IR4VFgBUW5f2liYfhPCC_CS50QT1VOPCrZZVteUPesPBbRIitHhFVpiQ0rWUGYjLEt-Yk3AZCBFI-EzopiYz-fTiw3Qzr4mSUs30AAsYrBewDctV1zvxZmxIZpXlsV196-oyQPyjLq5AM");'></div>
+</div>
+</header>
+<!-- Main Content Layout -->
+<div class="flex flex-1 flex-col lg:flex-row h-full overflow-hidden">
+<!-- Sidebar: Configuration Controls -->
+<aside class="w-full lg:w-[360px] xl:w-[400px] flex flex-col bg-white dark:bg-slate-900 border-r border-[#e7edf4] dark:border-slate-700 z-10 shadow-sm overflow-y-auto shrink-0">
+<div class="p-6 space-y-8 flex-1">
+<!-- Page Heading (In Sidebar context) -->
+<div>
+<h1 class="text-2xl font-bold leading-tight tracking-tight mb-2">Print Layout</h1>
+<p class="text-slate-500 dark:text-slate-400 text-sm">Configure your sheet settings and layout before printing.</p>
+</div>
+<!-- Paper Size Selection (TextField Component adapted) -->
+<div class="space-y-4">
+<label class="flex flex-col w-full">
+<p class="text-[#0d141c] dark:text-slate-200 text-sm font-medium leading-normal pb-2">Paper Size</p>
+<div class="relative">
+<select class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[#0d141c] dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/20 border border-[#cedbe8] dark:border-slate-600 bg-slate-50 dark:bg-slate-800 focus:border-primary h-12 pl-4 pr-10 text-sm font-normal leading-normal appearance-none">
+<option selected="" value="A4">A4 (210 x 297 mm)</option>
+<option value="Letter">US Letter (8.5 x 11 in)</option>
+<option value="4x6">4 x 6 inch</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
+<span class="material-symbols-outlined text-lg">expand_more</span>
+</div>
+</div>
+</label>
+</div>
+<!-- Copies Counter (ListItem Component adapted) -->
+<div class="space-y-2">
+<p class="text-[#0d141c] dark:text-slate-200 text-sm font-medium leading-normal">Photos per sheet</p>
+<div class="flex items-center gap-4 bg-slate-50 dark:bg-slate-800 border border-[#cedbe8] dark:border-slate-600 rounded-lg px-4 h-12 justify-between">
+<p class="text-[#0d141c] dark:text-slate-300 text-sm font-normal leading-normal flex-1 truncate">Quantity</p>
+<div class="shrink-0">
+<div class="flex items-center gap-3 text-[#0d141c] dark:text-white">
+<button class="text-base font-medium leading-normal flex h-8 w-8 items-center justify-center rounded-full bg-white dark:bg-slate-700 shadow-sm border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors cursor-pointer text-slate-600 dark:text-slate-200">
+<span class="material-symbols-outlined text-sm font-bold">remove</span>
+</button>
+<input class="text-base font-medium leading-normal w-6 p-0 text-center bg-transparent focus:outline-0 focus:ring-0 focus:border-none border-none [appearance:textfield] [&amp;::-webkit-inner-spin-button]:appearance-none [&amp;::-webkit-outer-spin-button]:appearance-none" readonly="" type="number" value="8"/>
+<button class="text-base font-medium leading-normal flex h-8 w-8 items-center justify-center rounded-full bg-white dark:bg-slate-700 shadow-sm border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors cursor-pointer text-primary">
+<span class="material-symbols-outlined text-sm font-bold">add</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Info Box -->
+<div class="rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/50 p-4 flex gap-3">
+<span class="material-symbols-outlined text-primary text-xl shrink-0 mt-0.5">info</span>
+<div class="text-sm text-slate-700 dark:text-slate-300">
+<p class="font-medium text-slate-900 dark:text-slate-100 mb-1">Auto-fit Enabled</p>
+<p class="leading-relaxed">8 photos fit perfectly on an A4 sheet with 5mm margins.</p>
+</div>
+</div>
+<!-- Quality Indicator -->
+<div class="flex items-center gap-2 pt-2">
+<div class="flex items-center justify-center size-5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400">
+<span class="material-symbols-outlined text-sm">check</span>
+</div>
+<span class="text-sm font-medium text-slate-700 dark:text-slate-300">300 DPI (High Quality)</span>
+</div>
+</div>
+<!-- Action Area Footer -->
+<div class="p-6 border-t border-[#e7edf4] dark:border-slate-700 bg-white dark:bg-slate-900 space-y-3">
+<button class="flex w-full items-center justify-center gap-2 rounded-lg bg-primary h-12 px-6 text-white font-medium hover:bg-blue-600 transition-colors shadow-md shadow-blue-500/20">
+<span class="material-symbols-outlined text-[20px]">print</span>
+<span>Print Sheet</span>
+</button>
+<div class="flex gap-3">
+<button class="flex flex-1 items-center justify-center gap-2 rounded-lg border border-[#cedbe8] dark:border-slate-600 bg-white dark:bg-slate-800 h-10 px-4 text-[#0d141c] dark:text-white font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+<span class="material-symbols-outlined text-[18px]">download</span>
+<span>Save Image</span>
+</button>
+<button class="flex items-center justify-center gap-2 rounded-lg border border-transparent bg-slate-100 dark:bg-slate-800 h-10 px-4 text-slate-600 dark:text-slate-400 font-medium hover:text-slate-900 dark:hover:text-white transition-colors">
+<span>Back</span>
+</button>
+</div>
+</div>
+</aside>
+<!-- Preview Canvas Area -->
+<main class="flex-1 bg-background-light dark:bg-[#1a2632] relative overflow-auto flex flex-col items-center justify-start p-8 lg:p-12">
+<!-- Toolbar floating over canvas -->
+<div class="absolute top-4 right-4 flex gap-2 bg-white dark:bg-slate-800 p-1.5 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 z-10">
+<button class="size-8 flex items-center justify-center rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors" title="Zoom Out">
+<span class="material-symbols-outlined text-lg">remove</span>
+</button>
+<div class="flex items-center justify-center px-2 text-xs font-medium text-slate-500 dark:text-slate-400 tabular-nums">100%</div>
+<button class="size-8 flex items-center justify-center rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors" title="Zoom In">
+<span class="material-symbols-outlined text-lg">add</span>
+</button>
+</div>
+<!-- The Paper Sheet -->
+<div class="relative bg-white shadow-[0_4px_24px_rgba(0,0,0,0.08)] transition-all duration-300 ease-in-out origin-top my-auto shrink-0" style="width: 210mm; min-height: 297mm; aspect-ratio: 210/297;">
+<!-- Crop Marks (Visual Decoration) -->
+<div class="absolute top-0 left-0 w-4 h-4 border-l border-t border-slate-900"></div>
+<div class="absolute top-0 right-0 w-4 h-4 border-r border-t border-slate-900"></div>
+<div class="absolute bottom-0 left-0 w-4 h-4 border-l border-b border-slate-900"></div>
+<div class="absolute bottom-0 right-0 w-4 h-4 border-r border-b border-slate-900"></div>
+<!-- Photos Grid Container -->
+<div class="w-full h-full p-[15mm] grid grid-cols-2 gap-[5mm] content-start">
+<!-- Photo Item 1 -->
+<div class="aspect-[35/45] relative bg-slate-100 overflow-hidden outline outline-1 outline-slate-200 group">
+<img class="w-full h-full object-cover" data-alt="Passport photo preview 1" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAw8B9I_v20jHDsVyagvO93Fa5WMGBdPaltg4xqpLX8_0IVyhGZX0U-1c0v4v7szZLsF49jKp9oxX_KkF1mUzC8_EUu03q94a4hnvUV-dA15QgrTWF-UXmDw-6ei_cIFQ1rNRe-VbkDzhSCzlNd0fyZzzyWl-r2aM_poBlLuzLE7Y0-bePeVk3cNGqcE5D_Z4W74TrKmmGGS7XLB8yNQuOzQGJid-vNavOQK3f2h6Ls5z8G4gqbhQ8fvqtDiDSknTOwYdgr3-kTLlI"/>
+<!-- Cut guide lines overlay -->
+<div class="absolute inset-0 border border-dashed border-slate-300 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity"></div>
+</div>
+<!-- Photo Item 2 -->
+<div class="aspect-[35/45] relative bg-slate-100 overflow-hidden outline outline-1 outline-slate-200 group">
+<img class="w-full h-full object-cover" data-alt="Passport photo preview 2" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD2RT6eqNgJDQsdYIPipRnLIHyxIUi1p5bmF5UYJULqOQNZqTVLZTyAOzZ7t1B5CUEOTypFRC1u-426ilwNPBwLMpm9j03yMAhK5uEN2sz9MB8ZwVkOi-HHUwr-4P1BxrkwAzcRhpdZI5Tq2vnT8vQ1AAdx1mnw8Rnk2l0RmVBCSBIeFNyXuaslcwdi1Uu6ckEaDD8yNiXriGkksd_umwqDSlTw8x9nqkbmxYzXltdH8TcZ3U265qZ8SvxAoUxWyyuxJ7C-USAob0A"/>
+<div class="absolute inset-0 border border-dashed border-slate-300 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity"></div>
+</div>
+<!-- Photo Item 3 -->
+<div class="aspect-[35/45] relative bg-slate-100 overflow-hidden outline outline-1 outline-slate-200 group">
+<img class="w-full h-full object-cover" data-alt="Passport photo preview 3" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD2oF3-pJY49YoFr78FqbAZoa6nCUyW8KgCLJpDfFfIRiCJg-AoIrCFvA8Im0U8jHmK2ZIzto_ibrkh0R_gb9homS4DtNGj8Umzn2pQSdEwWcM54Ez33de3W7q2H92pWfrkSbyb8g6HhdjH1pl3pEILjFxrEpJosF4kZr_JLBYhwrT8BvKHfw-8rcvaWXODHikYtUvOImeUrdqwaKeKOSpCc_PCKCMm8RVPj_uVpB4hZV1KwV5pgHRCGb-QBZzQKV5ODEi6NGxz_pQ"/>
+<div class="absolute inset-0 border border-dashed border-slate-300 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity"></div>
+</div>
+<!-- Photo Item 4 -->
+<div class="aspect-[35/45] relative bg-slate-100 overflow-hidden outline outline-1 outline-slate-200 group">
+<img class="w-full h-full object-cover" data-alt="Passport photo preview 4" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJxIqQ2u2BbBhaPYorPA3C92fqFtJauOcEbygO8VhDfkMeRjPMGmpuRQ0UhNEVo4FUKJm2Zsv5vR3bvqqNzosd1y3CUfAVKt9f10tCIE9VVt4WVAzqBGm77laJjLPRVulAh4yumlzUB1rrkbADtmqzFZc9GN-sr3QTfEeJrdVeE8kU2V6kna7fse1QEKcPdVgNVYdRTNDFwoTI4olycqh1LAgtM8wIqpyzfgD5Ny48qhVWruQ-AfgcH7L9FTapxxISgIzbdNO1UU0"/>
+<div class="absolute inset-0 border border-dashed border-slate-300 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity"></div>
+</div>
+<!-- Photo Item 5 -->
+<div class="aspect-[35/45] relative bg-slate-100 overflow-hidden outline outline-1 outline-slate-200 group">
+<img class="w-full h-full object-cover" data-alt="Passport photo preview 5" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCaXJnhfON1wNrc1wl-v1Z48-9Ug4tQL-rK66jcEYqdrBDoGkLxTdd_bVOeoIbyDa8MUdj2vbAU0zuP6BvWYjcKZ5ij7X-m75peXczxUPPqw-KXo_lvU-x6hwAUYC19fCMT23tb91kDDZQstQcmBHPnTlqZcCwOYk3bPZ776FXTPoNUydZ-SDpcGhP3nKeEGi1FoFQ9Sqyd4Hp3b9kCjS3ZSj6fB_q8sDN7CSJHZRUNqb24UpS-dGtXLiRdI_PddZbmz0EVNVw58T4"/>
+<div class="absolute inset-0 border border-dashed border-slate-300 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity"></div>
+</div>
+<!-- Photo Item 6 -->
+<div class="aspect-[35/45] relative bg-slate-100 overflow-hidden outline outline-1 outline-slate-200 group">
+<img class="w-full h-full object-cover" data-alt="Passport photo preview 6" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCJgmiFXaSyrzvi8K1_eEjD-RxxjT_1EkzEEWkxF-542cKf7v0eNmAE8cHRs6aPER6Zoem9NNSMD3JKEbFbUT-NzN25_xFp5r8uYDSKIxtTG1FmX5TLvt8hJICtwUTeP84-korfkfxusLyiMjQcwFIOtepD2IcGJLSd7pYV1ZAxu6lBuAOYTgKVlye60E5-9vDfthKnoREcAZrhohNJbY9XzGbzM890ZakV4D1G8I5ftnuRXJbBMBPnROEVEw3Y04beyBRvgR3HRi4"/>
+<div class="absolute inset-0 border border-dashed border-slate-300 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity"></div>
+</div>
+<!-- Photo Item 7 -->
+<div class="aspect-[35/45] relative bg-slate-100 overflow-hidden outline outline-1 outline-slate-200 group">
+<img class="w-full h-full object-cover" data-alt="Passport photo preview 7" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAVJD1QajtyY7nNh7GNBQC9qlLB70LfXQgXgOKHFLyIK-ZRuz51R2qZSCWKP2VuZ8qAxeO_dPfgwEPm49AClODabwuw3pmChXOq8Dus8TemlCoOFG3M6WG0yv8HZzBh3ixMCMCp26WiTpMJdlpE7sQx1CvA-g-oXxKV8UVWL4ohqlcSkBAsVN1Ei_8EqTh69ka8UPic3vjfvlkQWtyAs5vH6-k1Iy9wMsc97wSwkmGqzrQSo0GGz4cXWOTg9Pw7hTPoZod466F0uZo"/>
+<div class="absolute inset-0 border border-dashed border-slate-300 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity"></div>
+</div>
+<!-- Photo Item 8 -->
+<div class="aspect-[35/45] relative bg-slate-100 overflow-hidden outline outline-1 outline-slate-200 group">
+<img class="w-full h-full object-cover" data-alt="Passport photo preview 8" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAsIl3U6UOJQRjcuOQanN9PGZVZ_8rhYQK-L4zbp56W3B6zHvqFL6t8DSezKYXzLdibXa361iNfWb0gzBLdXvybgMlTDRwJWkCC3Wyi0cQCK0AyZU7CmQKrlEBR6FgdLvbenYfdnoSxCPBUUlR5mTonV_2y6NGTv_OTnsd2c_VMrbEJgRvxk95l4QhfwVR-BcZ7LxO8SD_xcv41VQsVhLvgkTcUhNOLiYFatSE3_llgqNnw5Pf2VoK7UjlPHRmt3Cyw9A8FpIA4UEg"/>
+<div class="absolute inset-0 border border-dashed border-slate-300 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity"></div>
+</div>
+</div>
+<!-- Grid Overlay for cutting (faint) -->
+<div class="absolute inset-0 pointer-events-none flex items-center justify-center">
+<div class="h-full w-[1px] bg-slate-100"></div>
+</div>
+<div class="absolute inset-0 pointer-events-none flex flex-col justify-evenly">
+<div class="w-full h-[1px] bg-slate-100"></div>
+<div class="w-full h-[1px] bg-slate-100"></div>
+<div class="w-full h-[1px] bg-slate-100"></div>
+</div>
+</div>
+<p class="mt-8 text-xs text-slate-400 dark:text-slate-500 font-medium">Preview is approximate. Final print quality depends on printer settings.</p>
+</main>
+</div>
+</body></html>
