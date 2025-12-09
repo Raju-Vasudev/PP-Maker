@@ -11,7 +11,7 @@
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"
   },
-  "homepage": "https://Raju-Vasudev.github.io/Photo-maker/pp-creator/",
+  "homepage": "https://raju-vasudev.github.io/PP-Maker",
   "dependencies": {
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
