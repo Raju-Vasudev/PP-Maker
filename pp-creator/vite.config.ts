@@ -4,6 +4,6 @@ import react from '@vitejs/plugin-react'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: "/PP-maker/", // This is your GitHub repository name and subfolder
+  base: "/PP-Maker/", // GitHub Pages base for the repo `PP-Maker`
 })
 
