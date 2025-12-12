@@ -1,53 +1,58 @@
-import React from 'react';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import TextField from '@mui/material/TextField';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
+import Paper from '@mui/material/Paper';
 
-export default function PrintSettings(): JSX.Element {
+export default function PrintSettings() {
   return (
-    <div>
-      <h3 style={{ margin: '0 0 8px 0' }}>Print Layout</h3>
-      <p style={{ margin: '0 0 16px 0', color: 'rgba(0,0,0,0.6)' }}>Configure your sheet settings and layout before printing.</p>
+    <Box>
+      <Typography variant="h6" sx={{ mb: 1 }}>Print Layout</Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Configure your sheet settings and layout before printing.</Typography>
 
-      <div style={{ marginBottom: 12 }}>
-        <label style={{ display: 'block', fontSize: 12, color: 'rgba(0,0,0,0.7)' }}>Paper Size</label>
-        <select style={{ width: '100%', padding: 8, marginTop: 6 }} defaultValue="A4">
-          <option value="A4">A4 (210 x 297 mm)</option>
-          <option value="Letter">US Letter (8.5 x 11 in)</option>
-          <option value="4x6">4 x 6 inch</option>
-        </select>
-      </div>
+      <Box sx={{ mb: 2 }}>
+        <Typography variant="caption" color="text.secondary">Paper Size</Typography>
+        <Select defaultValue="A4" fullWidth size="small" sx={{ mt: 1 }}>
+          <MenuItem value="A4">A4 (210 x 297 mm)</MenuItem>
+          <MenuItem value="Letter">US Letter (8.5 x 11 in)</MenuItem>
+          <MenuItem value="4x6">4 x 6 inch</MenuItem>
+        </Select>
+      </Box>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
-        <div style={{ padding: 12, background: '#f8fafc', borderRadius: 8 }}>
-          <div style={{ fontSize: 10, color: '#6b7280' }}>Width</div>
-          <div style={{ fontWeight: 700 }}>600 px</div>
-        </div>
-        <div style={{ padding: 12, background: '#f8fafc', borderRadius: 8 }}>
-          <div style={{ fontSize: 10, color: '#6b7280' }}>Height</div>
-          <div style={{ fontWeight: 700 }}>900 px</div>
-        </div>
-      </div>
+      <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+        <Paper sx={{ p: 1.5, bgcolor: 'background.paper', flex: 1 }}>
+          <Typography variant="caption" color="text.secondary">Width</Typography>
+          <Typography sx={{ fontWeight: 700 }}>600 px</Typography>
+        </Paper>
+        <Paper sx={{ p: 1.5, bgcolor: 'background.paper', flex: 1 }}>
+          <Typography variant="caption" color="text.secondary">Height</Typography>
+          <Typography sx={{ fontWeight: 700 }}>900 px</Typography>
+        </Paper>
+      </Stack>
 
-      <div style={{ background: '#eef2ff', padding: 12, borderRadius: 8, marginBottom: 12 }}>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-          <div style={{ fontSize: 20, color: '#0d7ff2' }}>i</div>
-          <div style={{ fontSize: 13 }}>
-            Auto-fit enabled. 8 photos fit on A4 with 5mm margins.
-          </div>
-        </div>
-      </div>
+      <Paper sx={{ bgcolor: 'info.lighter', p: 1.5, borderRadius: 1, mb: 2 }}>
+        <Stack direction="row" spacing={1} alignItems="flex-start">
+          <Typography sx={{ fontSize: 18, color: 'primary.main' }}>i</Typography>
+          <Typography variant="body2">Auto-fit enabled. 8 photos fit on A4 with 5mm margins.</Typography>
+        </Stack>
+      </Paper>
 
-      <div style={{ marginBottom: 12 }}>
-        <label style={{ display: 'block', fontSize: 12, color: 'rgba(0,0,0,0.7)' }}>Copies</label>
-        <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-          <button style={{ padding: '6px 10px' }}>-</button>
-          <input type="number" defaultValue={8} style={{ width: 60, textAlign: 'center' }} />
-          <button style={{ padding: '6px 10px' }}>+</button>
-        </div>
-      </div>
+      <Box sx={{ mb: 2 }}>
+        <Typography variant="caption" color="text.secondary">Copies</Typography>
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 1 }}>
+          <Button variant="outlined" size="small">-</Button>
+          <TextField size="small" defaultValue={8} sx={{ width: 80, textAlign: 'center' }} />
+          <Button variant="outlined" size="small">+</Button>
+        </Stack>
+      </Box>
 
-      <div style={{ display: 'flex', gap: 8 }}>
-        <button style={{ flex: 1, padding: 10, background: '#0d7ff2', color: '#fff', border: 'none', borderRadius: 8 }}>Print Sheet</button>
-        <button style={{ flex: 1, padding: 10, borderRadius: 8 }}>Save Image</button>
-      </div>
-    </div>
+      <Stack direction="row" spacing={1}>
+        <Button fullWidth variant="contained" color="primary">Print Sheet</Button>
+        <Button fullWidth variant="outlined">Save Image</Button>
+      </Stack>
+    </Box>
   );
 }

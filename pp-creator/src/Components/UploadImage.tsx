@@ -1,4 +1,5 @@
-import React, { useRef, useState, DragEvent, ChangeEvent } from "react";
+import { useRef, useState, useEffect } from "react";
+import type { DragEvent, ChangeEvent, MouseEvent as ReactMouseEvent, WheelEvent as ReactWheelEvent } from 'react';
 import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
 import Container from "@mui/material/Container";
@@ -44,7 +45,7 @@ type UploadImageProps = {
   initialCropRect?: { srcX: number; srcY: number; srcW: number; srcH: number; imgW: number; imgH: number } | null;
 };
 
-export default function UploadImage({ onUploaded, onCropChange, onNext, cellBorderEnabled = false, cellBorderMm = 0.35, cellBorderStyle = 'dashed', cellBorderColor = '#000', initialUploadedUrl = null, initialCropRect = null }: UploadImageProps): JSX.Element {
+export default function UploadImage({ onUploaded, onCropChange, onNext, cellBorderEnabled = false, cellBorderMm = 0.35, cellBorderStyle = 'dashed', cellBorderColor = '#000', initialUploadedUrl = null, initialCropRect = null }: UploadImageProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
@@ -52,14 +53,14 @@ export default function UploadImage({ onUploaded, onCropChange, onNext, cellBord
   const [loadedImage, setLoadedImage] = useState<HTMLImageElement | null>(null);
   
   // Cropper state
-  const cropCanvasRef = React.useRef<HTMLCanvasElement | null>(null);
+  const cropCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const [cropViewportW] = useState<number>(300);
   const [cropAspectW] = useState<number>(35); // passport width mm
   const [cropAspectH] = useState<number>(45); // passport height mm
   const cropViewportH = Math.round(cropViewportW * (cropAspectH / cropAspectW));
   const [cropScale, setCropScale] = useState<number>(1);
   const [cropOffset, setCropOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  const draggingRef = React.useRef<{ active: boolean; startX: number; startY: number; origX: number; origY: number }>({ active: false, startX: 0, startY: 0, origX: 0, origY: 0 });
+  const draggingRef = useRef<{ active: boolean; startX: number; startY: number; origX: number; origY: number }>({ active: false, startX: 0, startY: 0, origX: 0, origY: 0 });
 
   function validateFile(file: File) {
     if (!file) return "No file provided";
@@ -103,14 +104,14 @@ export default function UploadImage({ onUploaded, onCropChange, onNext, cellBord
     return new Promise((resolve, reject) => {
       const img = new Image();
       img.onload = () => resolve(img);
-      img.onerror = (ev) => reject(new Error('Image load error'));
+      img.onerror = () => reject(new Error('Image load error'));
       img.crossOrigin = 'anonymous';
       img.src = objectUrl;
     });
   }
 
   // If we have an initial uploaded URL (coming back from preview), load it into the cropper
-  React.useEffect(() => {
+  useEffect(() => {
     if (!initialUploadedUrl) return;
     // if preview already present and matches, skip
     if (previewUrl === initialUploadedUrl && loadedImage) return;
@@ -125,7 +126,7 @@ export default function UploadImage({ onUploaded, onCropChange, onNext, cellBord
   }, [initialUploadedUrl]);
 
   // Initialize crop state whenever a new image is loaded
-  React.useEffect(() => {
+  useEffect(() => {
     if (!loadedImage) return;
     const imgW = loadedImage.naturalWidth;
     const imgH = loadedImage.naturalHeight;
@@ -224,7 +225,7 @@ export default function UploadImage({ onUploaded, onCropChange, onNext, cellBord
   }
 
   // Mouse / touch handlers for crop pan
-  function onCropMouseDown(e: React.MouseEvent) {
+  function onCropMouseDown(e: ReactMouseEvent) {
     draggingRef.current.active = true;
     draggingRef.current.startX = e.clientX;
     draggingRef.current.startY = e.clientY;
@@ -254,14 +255,14 @@ export default function UploadImage({ onUploaded, onCropChange, onNext, cellBord
   }
 
   // cleanup on unmount
-  React.useEffect(() => {
+  useEffect(() => {
     return () => {
       window.removeEventListener('mousemove', onCropMouseMove);
       window.removeEventListener('mouseup', onCropMouseUp);
     };
   }, []);
 
-  function onCropWheel(e: React.WheelEvent) {
+  function onCropWheel(e: ReactWheelEvent) {
     e.preventDefault();
     const delta = -e.deltaY / 500; // smooth
     const newScale = Math.max(0.2, cropScale + delta);

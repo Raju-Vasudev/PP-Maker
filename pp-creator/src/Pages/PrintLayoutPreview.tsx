@@ -1,19 +1,45 @@
-import React, { useState } from 'react';
-// PrintSettings exists but we'll inline controls here to keep state local
+import { useState, useEffect } from 'react';
+import Box from '@mui/material/Box';
+import AppBar from '@mui/material/AppBar';
+import Toolbar from '@mui/material/Toolbar';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import Paper from '@mui/material/Paper';
+import Divider from '@mui/material/Divider';
+import Stack from '@mui/material/Stack';
+import TextField from '@mui/material/TextField';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Switch from '@mui/material/Switch';
 
-const sampleImgs = [
-  // use a few placeholder images (from mocks) to populate the preview grid
-  'https://lh3.googleusercontent.com/aida-public/AB6AXuAw8B9I_v20jHDsVyagvO93Fa5WMGBdPaltg4xqpLX8_0IVyhGZX0U-1c0v4v7szZLsF49jKp9oxX_KkF1mUzC8_EUu03q94a4hnvUV-dA15QgrTWF-UXmDw-6ei_cIFQ1rNRe-VbkDzhSCzlNd0fyZzzyWl-r2aM_poBlLuzLE7Y0-bePeVk3cNGqcE5D_Z4W74TrKmmGGS7XLB8yNQuOzQGJid-vNavOQK3f2h6Ls5z8G4gqbhQ8fvqtDiDSknTOwYdgr3-kTLlI',
-  'https://lh3.googleusercontent.com/aida-public/AB6AXuD2RT6eqNgJDQsdYIPipRnLIHyxIUi1p5bmF5UYJULqOQNZqTVLZTyAOzZ7t1B5CUEOTypFRC1u-426ilwNPBwLMpm9j03yMAhK5uEN2sz9MB8ZwVkOi-HHUwr-4P1BxrkwAzcRhpdZI5Tq2vnT8vQ1AAdx1mnw8Rnk2l0RmVBCSBIeFNyXuaslcwdi1Uu6ckEaDD8yNiXriGkksd_umwqDSlTw8x9nqkbmxYzXltdH8TcZ3U265qZ8SvxAoUxWyyuxJ7C-USAob0A',
-  'https://lh3.googleusercontent.com/aida-public/AB6AXuD2oF3-pJY49YoFr78FqbAZoa6nCUyW8KgCLJpDfFfIRiCJg-AoIrCFvA8Im0U8jHmK2ZIzto_ibrkh0R_gb9homS4DtNGj8Umzn2pQSdEwWcM54Ez33de3W7q2H92pWfrkSbyb8g6HhdjH1pl3pEILjFxrEpJosF4kZr_JLBYhwrT8BvKHfw-8rcvaWXODHikYtUvOImeUrdqwaKeKOSpCc_PCKCMm8RVPj_uVpB4hZV1KwV5pgHRCGb-QBZzQKV5ODEi6NGxz_pQ',
-  'https://lh3.googleusercontent.com/aida-public/AB6AXuDJxIqQ2u2BbBhaPYorPA3C92fqFtJauOcEbygO8VhDfkMeRjPMGmpuRQ0UhNEVo4FUKJm2Zsv5vR3bvqqNzosd1y3CUfAVKt9f10tCIE9VVt4WVAzqBGm77laJjLPRVulAh4yumlzUB1rrkbADtmqzFZc9GN-sr3QTfEeJrdVeE8kU2V6kna7fse1QEKcPdVgNVYdRTNDFwoTI4olycqh1LAgtM8wIqpyzfgD5Ny48qhVWruQ-AfgcH7L9FTapxxISgIzbdNO1UU0',
-  'https://lh3.googleusercontent.com/aida-public/AB6AXuCaXJnhfON1wNrc1wl-v1Z48-9Ug4tQL-rK66jcEYqdrBDoGkLxTdd_bVOeoIbyDa8MUdj2vbAU0zuP6BvWYjcKZ5ij7X-m75peXczxUPPqw-KXo_lvU-x6hwAUYC19fCMT23tb91kDDZQstQcmBHPnTlqZcCwOYk3bPZ776FXTPoNUydZ-SDpcGhP3nKeEGi1FoFQ9Sqyd4Hp3b9kCjS3ZSj6fB_q8sDN7CSJHZRUNqb24UpS-dGtXLiRdI_PddZbmz0EVNVw58T4',
-  'https://lh3.googleusercontent.com/aida-public/AB6AXuCJgmiFXaSyrzvi8K1_eEjD-RxxjT_1EkzEEWkxF-542cKf7v0eNmAE8cHRs6aPER6Zoem9NNSMD3JKEbFbUT-NzN25_xFp5r8uYDSKIxtTG1FmX5TLvt8hJICtwUTeP84-korfkfxusLyiMjQcwFIOtepD2IcGJLSd7pYV1ZAxu6lBuAOYTgKVlye60E5-9vDfthKnoREcAZrhohNJbY9XzGbzM890ZakV4D1G8I5ftnuRXJbBMBPnROEVEw3Y04beyBRvgR3HRi4',
-  'https://lh3.googleusercontent.com/aida-public/AB6AXuAVJD1QajtyY7nNh7GNBQC9qlLB70LfXQgXgOKHFLyIK-ZRuz51R2qZSCWKP2VuZ8qAxeO_dPfgwEPm49AClODabwuw3pmChXOq8Dus8TemlCoOFG3M6WG0yv8HZzBh3ixMCMCp26WiTpMJdlpE7sQx1CvA-g-oXxKV8UVWL4ohqlcSkBAsVN1Ei_8EqTh69ka8UPic3vjfvlkQWtyAs5vH6-k1Iy9wMsc97wSwkmGqzrQSo0GGz4cXWOTg9Pw7hTPoZod466F0uZo',
-  'https://lh3.googleusercontent.com/aida-public/AB6AXuAsIl3U6UOJQRjcuOQanN9PGZVZ_8rhYQK-L4zbp56W3B6zHvqFL6t8DSezKYXzLdibXa361iNfWb0gzBLdXvybgMlTDRwJWkCC3Wyi0cQCK0AyZU7CmQKrlEBR6FgdLvbenYfdnoSxCPBUUlR5mTonV_2y6NGTv_OTnsd2c_VMrbEJgRvxk95l4QhfwVR-BcZ7LxO8SD_xcv41VQsVhLvgkTcUhNOLiYFatSE3_llgqNnw5Pf2VoK7UjlPHRmt3Cyw9A8FpIA4UEg'
-];
+type CropRect = { srcX: number; srcY: number; srcW: number; srcH: number; imgW: number; imgH: number };
 
-export default function PrintLayoutPreview({ uploadedUrl, cropRect, onBack, cellBorderEnabled, setCellBorderEnabled, cellBorderMm, setCellBorderMm, cellBorderStyle, setCellBorderStyle, cellBorderColor, setCellBorderColor }: { uploadedUrl: string | null; cropRect?: { srcX: number; srcY: number; srcW: number; srcH: number; imgW: number; imgH: number } | null; onBack?: () => void; cellBorderEnabled: boolean; setCellBorderEnabled: (v: boolean) => void; cellBorderMm: number; setCellBorderMm: (n: number) => void; cellBorderStyle: 'solid' | 'dashed'; setCellBorderStyle: (s: 'solid' | 'dashed') => void; cellBorderColor: string; setCellBorderColor: (c: string) => void; }): JSX.Element {
+interface PrintLayoutPreviewProps {
+  uploadedUrl: string | null;
+  cropRect?: CropRect | null;
+  onBack?: () => void;
+  cellBorderEnabled: boolean;
+  setCellBorderEnabled: (v: boolean) => void;
+  cellBorderMm: number;
+  setCellBorderMm: (n: number) => void;
+  cellBorderStyle: 'solid' | 'dashed';
+  setCellBorderStyle: (s: 'solid' | 'dashed') => void;
+  cellBorderColor: string;
+  setCellBorderColor: (c: string) => void;
+}
+
+export default function PrintLayoutPreview({
+  uploadedUrl,
+  cropRect,
+  onBack,
+  cellBorderEnabled,
+  setCellBorderEnabled,
+  cellBorderMm,
+  setCellBorderMm,
+  cellBorderStyle,
+  setCellBorderStyle,
+  cellBorderColor,
+  setCellBorderColor
+}: PrintLayoutPreviewProps) {
   const [scaleMode, setScaleMode] = useState<'cover' | 'contain'>('contain');
   const [layout, setLayout] = useState<'horizontal' | 'vertical'>('horizontal');
   const [gutterMm, setGutterMm] = useState<number>(5);
@@ -27,7 +53,14 @@ export default function PrintLayoutPreview({ uploadedUrl, cropRect, onBack, cell
   const previewWidthMm = pageWidthIn * 25.4;
   const previewHeightMm = pageHeightIn * 25.4;
 
-  function loadImageFromFile(objectUrl: string): Promise<HTMLImageElement> {
+  useEffect(() => {
+    // cleanup object URL when component unmounts or sheet changes
+    return () => {
+      if (sheetUrl) URL.revokeObjectURL(sheetUrl);
+    };
+  }, [sheetUrl]);
+
+  async function loadImageFromFile(objectUrl: string): Promise<HTMLImageElement> {
     return new Promise((resolve, reject) => {
       const img = new Image();
       img.onload = () => resolve(img);
@@ -38,20 +71,16 @@ export default function PrintLayoutPreview({ uploadedUrl, cropRect, onBack, cell
   }
 
   async function generateFromUploaded() {
-    if (!uploadedUrl) return setSheetUrl(null);
+    if (!uploadedUrl) {
+      setSheetUrl(null);
+      return;
+    }
     setProcessing(true);
     try {
       const img = await loadImageFromFile(uploadedUrl);
       const DPI = 300;
-      let sheetW: number;
-      let sheetH: number;
-      if (layout === 'horizontal') {
-        sheetW = 6 * DPI;
-        sheetH = 4 * DPI;
-      } else {
-        sheetW = 4 * DPI;
-        sheetH = 6 * DPI;
-      }
+      const sheetW = (layout === 'horizontal' ? 6 : 4) * DPI;
+      const sheetH = (layout === 'horizontal' ? 4 : 6) * DPI;
       const cols = layout === 'horizontal' ? 4 : 2;
       const rows = layout === 'horizontal' ? 2 : 4;
       const gutterPx = Math.round((gutterMm / 25.4) * DPI);
@@ -65,20 +94,19 @@ export default function PrintLayoutPreview({ uploadedUrl, cropRect, onBack, cell
       canvas.width = sheetW;
       canvas.height = sheetH;
       const ctx = canvas.getContext('2d');
-      if (!ctx) throw new Error('No ctx');
+      if (!ctx) throw new Error('No canvas context');
       ctx.fillStyle = '#fff';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       const imgW = img.naturalWidth;
       const imgH = img.naturalHeight;
 
-      // simple fill behavior: if cropRect provided, use it as source rect; otherwise use whole image
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
           const x = marginPx + c * (cellW + gutterPx);
           const y = marginPx + r * (cellH + gutterPx);
+
           if (cropRect && cropRect.srcW > 0 && cropRect.srcH > 0) {
-            // use crop source rect
             let { srcX, srcY, srcW, srcH } = cropRect;
             const destAspect = cellW / cellH;
             if (scaleMode === 'cover') {
@@ -101,19 +129,6 @@ export default function PrintLayoutPreview({ uploadedUrl, cropRect, onBack, cell
               const destY = y + (cellH - drawH) / 2;
               ctx.drawImage(img, srcX, srcY, srcW, srcH, destX, destY, drawW, drawH);
             }
-              // draw border for this cell if enabled
-              if (cellBorderEnabled) {
-                const borderPx = Math.max(0.5, Math.round((cellBorderMm / 25.4) * DPI));
-                ctx.save();
-                ctx.strokeStyle = cellBorderColor;
-                ctx.lineWidth = borderPx;
-                if (cellBorderStyle === 'dashed') ctx.setLineDash([Math.max(2, borderPx * 2), Math.max(2, borderPx * 2)]);
-                else ctx.setLineDash([]);
-                // inset by half the line width so stroke lies inside the cell
-                const half = ctx.lineWidth / 2;
-                ctx.strokeRect(x + half, y + half, cellW - ctx.lineWidth, cellH - ctx.lineWidth);
-                ctx.restore();
-              }
           } else {
             if (scaleMode === 'cover') {
               const scale = Math.max(cellW / imgW, cellH / imgH);
@@ -130,18 +145,19 @@ export default function PrintLayoutPreview({ uploadedUrl, cropRect, onBack, cell
               const dy = y + (cellH - drawH) / 2;
               ctx.drawImage(img, dx, dy, drawW, drawH);
             }
-              // draw border for this cell if enabled
-              if (cellBorderEnabled) {
-                const borderPx = Math.max(0.5, Math.round((cellBorderMm / 25.4) * DPI));
-                ctx.save();
-                ctx.strokeStyle = cellBorderColor;
-                ctx.lineWidth = borderPx;
-                if (cellBorderStyle === 'dashed') ctx.setLineDash([Math.max(2, borderPx * 2), Math.max(2, borderPx * 2)]);
-                else ctx.setLineDash([]);
-                const half = ctx.lineWidth / 2;
-                ctx.strokeRect(x + half, y + half, cellW - ctx.lineWidth, cellH - ctx.lineWidth);
-                ctx.restore();
-              }
+          }
+
+          // cell border
+          if (cellBorderEnabled) {
+            const borderPx = Math.max(0.5, Math.round((cellBorderMm / 25.4) * DPI));
+            ctx.save();
+            ctx.strokeStyle = cellBorderColor;
+            ctx.lineWidth = borderPx;
+            if (cellBorderStyle === 'dashed') ctx.setLineDash([Math.max(2, borderPx * 2), Math.max(2, borderPx * 2)]);
+            else ctx.setLineDash([]);
+            const half = ctx.lineWidth / 2;
+            ctx.strokeRect(x + half, y + half, cellW - ctx.lineWidth, cellH - ctx.lineWidth);
+            ctx.restore();
           }
         }
       }
@@ -152,6 +168,7 @@ export default function PrintLayoutPreview({ uploadedUrl, cropRect, onBack, cell
       if (sheetUrl) URL.revokeObjectURL(sheetUrl);
       setSheetUrl(u);
     } catch (e) {
+      // eslint-disable-next-line no-console
       console.error(e);
     } finally {
       setProcessing(false);
@@ -181,100 +198,90 @@ export default function PrintLayoutPreview({ uploadedUrl, cropRect, onBack, cell
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg, #f5f7f8)' }}>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderBottom: '1px solid rgba(0,0,0,0.06)', background: '#fff' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ width: 40, height: 40, borderRadius: 8, background: 'rgba(13,127,242,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span className="material-symbols-outlined">perm_identity</span>
-          </div>
-          <h2 style={{ margin: 0 }}>PassportMaker</h2>
-        </div>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-          <button onClick={() => onBack && onBack()} style={{ padding: '8px 12px', marginRight: 8, borderRadius: 6 }}>Edit Crop</button>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#16a34a' }}>
-            <span className="material-symbols-outlined">check</span>
-            <span style={{ fontSize: 13 }}>300 DPI (High Quality)</span>
-          </div>
-        </div>
-      </header>
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+      <AppBar position="sticky" color="transparent" elevation={0} sx={{ backdropFilter: 'blur(6px)' }}>
+        <Toolbar sx={{ justifyContent: 'space-between' }}>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Box sx={{ width: 40, height: 40, borderRadius: 1, bgcolor: 'primary.lighter', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span className="material-symbols-outlined">perm_identity</span>
+            </Box>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>PassportMaker</Typography>
+          </Stack>
 
-      <div style={{ display: 'flex', minHeight: 'calc(100vh - 72px)' }}>
-        <aside style={{ width: 360, borderRight: '1px solid rgba(0,0,0,0.06)', background: '#fff' }}>
-          <div style={{ padding: 20 }}>
-            <h3 style={{ marginTop: 0 }}>Print Settings</h3>
-            <div style={{ marginBottom: 12 }}>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button onClick={() => setScaleMode('contain')} style={{ padding: 8, borderRadius: 6, background: scaleMode === 'contain' ? '#eef2ff' : '#fff' }}>Fit</button>
-                <button onClick={() => setScaleMode('cover')} style={{ padding: 8, borderRadius: 6, background: scaleMode === 'cover' ? '#eef2ff' : '#fff' }}>Fill</button>
-              </div>
-            </div>
-            <div style={{ marginBottom: 12 }}>
-              <label style={{ display: 'block', fontSize: 12 }}>Gutter (mm)</label>
-              <input type="number" value={gutterMm} onChange={(e) => setGutterMm(Number(e.target.value) || 0)} style={{ width: '100%', padding: 8 }} />
-            </div>
-            <div style={{ marginBottom: 12 }}>
-              <label style={{ display: 'block', fontSize: 12 }}>Margin (mm)</label>
-              <input type="number" value={marginMm} onChange={(e) => setMarginMm(Number(e.target.value) || 0)} style={{ width: '100%', padding: 8 }} />
-            </div>
-            <div style={{ marginBottom: 12 }}>
-              <label style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <input type="checkbox" checked={cellBorderEnabled} onChange={(e) => setCellBorderEnabled(e.target.checked)} /> Add border to each image
-              </label>
-              {cellBorderEnabled && (
-                <div style={{ marginTop: 8, display: 'grid', gridTemplateColumns: '1fr 72px', gap: 8 }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: 12 }}>Border width (mm)</label>
-                    <input type="number" value={cellBorderMm} step={0.05} min={0} onChange={(e) => setCellBorderMm(Number(e.target.value) || 0)} style={{ width: '100%', padding: 8 }} />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: 12 }}>Color</label>
-                    <input type="color" value={cellBorderColor} onChange={(e) => setCellBorderColor(e.target.value)} style={{ width: '100%', height: 40, padding: 4 }} />
-                  </div>
-                  <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 8, marginTop: 6 }}>
-                    <button onClick={() => setCellBorderStyle('solid')} style={{ padding: 8, borderRadius: 6, background: cellBorderStyle === 'solid' ? '#eef2ff' : '#fff' }}>Solid</button>
-                    <button onClick={() => setCellBorderStyle('dashed')} style={{ padding: 8, borderRadius: 6, background: cellBorderStyle === 'dashed' ? '#eef2ff' : '#fff' }}>Dashed</button>
-                  </div>
-                </div>
-              )}
-            </div>
-            {/* Bleed control hidden per user request */}
+          <Stack direction="row" spacing={1} alignItems="center">
+            <Button variant="outlined" onClick={() => onBack && onBack()}>Edit Crop</Button>
+            <Stack direction="row" spacing={1} alignItems="center">
+              <span className="material-symbols-outlined" style={{ color: '#16a34a' }}>check</span>
+              <Typography variant="caption">300 DPI (High Quality)</Typography>
+            </Stack>
+          </Stack>
+        </Toolbar>
+      </AppBar>
 
-            <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-              <button onClick={generateFromUploaded} disabled={!uploadedUrl || processing} style={{ padding: 10, flex: 1 }}>Generate 4R (8-up)</button>
-              <button onClick={downloadSheet} disabled={!sheetUrl} style={{ padding: 10 }}>Download</button>
-              <button onClick={printSheet} disabled={!sheetUrl} style={{ padding: 10 }}>Print</button>
-            </div>
-          </div>
-        </aside>
+      <Box sx={{ display: 'flex', minHeight: 'calc(100vh - 72px)' }}>
+        <Box component={Paper} elevation={0} square sx={{ width: 360, borderRight: '1px solid', borderColor: 'divider', p: 2 }}>
+          <Typography variant="h6">Print Settings</Typography>
 
-        <main style={{ flex: 1, padding: 24, background: 'var(--bg, #f5f7f8)', overflow: 'auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'center' }}>
-            <div style={{ width: `${previewWidthMm}mm`, height: `${previewHeightMm}mm`, background: '#fff', boxShadow: '0 12px 40px rgba(0,0,0,0.12)', padding: '12mm', boxSizing: 'border-box', borderRadius: 8, border: '1px solid rgba(0,0,0,0.06)', position: 'relative' }}>
-              {/* Sheet size label (top-left) */}
-              <div style={{ position: 'absolute', left: 8, top: 8, background: 'rgba(0,0,0,0.66)', color: '#fff', padding: '4px 8px', borderRadius: 6, fontSize: 12, zIndex: 3 }}>
+          <Box sx={{ mt: 2 }}>
+            <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+              <Button variant={scaleMode === 'contain' ? 'contained' : 'outlined'} onClick={() => setScaleMode('contain')}>Fit</Button>
+              <Button variant={scaleMode === 'cover' ? 'contained' : 'outlined'} onClick={() => setScaleMode('cover')}>Fill</Button>
+            </Stack>
+
+            <TextField label="Gutter (mm)" type="number" value={gutterMm} onChange={(e) => setGutterMm(Number(e.target.value) || 0)} fullWidth sx={{ mb: 2 }} />
+            <TextField label="Margin (mm)" type="number" value={marginMm} onChange={(e) => setMarginMm(Number(e.target.value) || 0)} fullWidth sx={{ mb: 2 }} />
+
+            <FormControlLabel control={<Switch checked={cellBorderEnabled} onChange={(e) => setCellBorderEnabled(e.target.checked)} />} label="Add border to each image" />
+
+            {cellBorderEnabled && (
+              <Box sx={{ mt: 1, display: 'grid', gridTemplateColumns: '1fr 80px', gap: 1 }}>
+                <TextField label="Border width (mm)" type="number" value={cellBorderMm} inputProps={{ step: 0.05 }} onChange={(e) => setCellBorderMm(Number(e.target.value) || 0)} />
+                <TextField label="Color" type="color" value={cellBorderColor} onChange={(e) => setCellBorderColor(e.target.value)} />
+                <Box sx={{ gridColumn: '1 / -1', display: 'flex', gap: 1, mt: 1 }}>
+                  <Button variant={cellBorderStyle === 'solid' ? 'contained' : 'outlined'} onClick={() => setCellBorderStyle('solid')}>Solid</Button>
+                  <Button variant={cellBorderStyle === 'dashed' ? 'contained' : 'outlined'} onClick={() => setCellBorderStyle('dashed')}>Dashed</Button>
+                </Box>
+              </Box>
+            )}
+
+            <Divider sx={{ my: 2 }} />
+
+            <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+              <Button onClick={generateFromUploaded} disabled={!uploadedUrl || processing} variant="contained" fullWidth>Generate 4R (8-up)</Button>
+              <Button onClick={downloadSheet} disabled={!sheetUrl} variant="outlined">Download</Button>
+              <Button onClick={printSheet} disabled={!sheetUrl} variant="outlined">Print</Button>
+            </Stack>
+          </Box>
+        </Box>
+
+        <Box component="main" sx={{ flex: 1, p: 3, bgcolor: 'background.default', overflow: 'auto' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+            <Paper sx={{ width: `${previewWidthMm}mm`, height: `${previewHeightMm}mm`, background: '#fff', boxShadow: 3, p: '12mm', borderRadius: 2, border: '1px solid', borderColor: 'divider', position: 'relative' }}>
+              <Box sx={{ position: 'absolute', left: 1, top: 1, bgcolor: 'rgba(0,0,0,0.66)', color: '#fff', px: 1, py: '2px', borderRadius: 1, fontSize: 12, zIndex: 3 }}>
                 {pageWidthIn} x {pageHeightIn} in · 300 DPI
-              </div>
+              </Box>
 
               {!sheetUrl && (
-                <div style={{ color: 'rgba(0,0,0,0.6)', textAlign: 'center' }}>
-                  <p style={{ marginTop: 36 }}>No sheet generated yet. Click Generate to compose the 4R sheet from your uploaded photo.</p>
-                </div>
+                <Box sx={{ color: 'text.secondary', textAlign: 'center', mt: 6 }}>
+                  <Typography>No sheet generated yet. Click Generate to compose the 4R sheet from your uploaded photo.</Typography>
+                </Box>
               )}
-              {sheetUrl && (
-                <img src={sheetUrl} alt="generated sheet" style={{ width: '100%', height: '100%', display: 'block', borderRadius: 4, objectFit: 'contain' }} />
-              )}
-            </div>
-          </div>
 
-          <div style={{ display: 'flex', justifyContent: 'center', marginTop: 10 }}>
-            <div style={{ fontSize: 13, color: 'rgba(0,0,0,0.6)' }}>
-              Sheet: {pageWidthIn} × {pageHeightIn} in — Margin: {marginMm}mm · Gutter: {gutterMm}mm · 300 DPI
-              {cellBorderEnabled ? ` · Border: ${cellBorderMm}mm ${cellBorderStyle} ${cellBorderColor}` : ''}
-            </div>
-          </div>
-          <p style={{ marginTop: 16, color: 'rgba(0,0,0,0.6)', fontSize: 13 }}>Preview is approximate. Final print quality depends on printer settings.</p>
-        </main>
-      </div>
-    </div>
+              {sheetUrl && (
+                <Box component="img" src={sheetUrl} alt="generated sheet" sx={{ width: '100%', height: '100%', display: 'block', borderRadius: 1, objectFit: 'contain' }} />
+              )}
+            </Paper>
+          </Box>
+
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
+            <Typography variant="body2" color="text.secondary">
+              Sheet: {pageWidthIn} × {pageHeightIn} in — Margin: {marginMm}mm · Gutter: {gutterMm}mm · 300 DPI{cellBorderEnabled ? ` · Border: ${cellBorderMm}mm ${cellBorderStyle} ${cellBorderColor}` : ''}
+            </Typography>
+          </Box>
+
+          <Typography sx={{ mt: 2, color: 'text.secondary' }} variant="body2">Preview is approximate. Final print quality depends on printer settings.</Typography>
+        </Box>
+      </Box>
+    </Box>
   );
 }
