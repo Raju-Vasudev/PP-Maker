@@ -11,6 +11,11 @@ import Paper from "@mui/material/Paper";
 import Alert from "@mui/material/Alert";
 import LinearProgress from "@mui/material/LinearProgress";
 import IconButton from "@mui/material/IconButton";
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import TextField from '@mui/material/TextField';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
 // Using Material Symbols (loaded from index.html) instead of @mui icons
 
 function CloudUploadIcon({ size = 24, color = 'currentColor' }: { size?: number; color?: string }) {
@@ -51,6 +56,25 @@ export default function UploadImage({ onUploaded, onCropChange, onNext, cellBord
   const [processing, setProcessing] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [loadedImage, setLoadedImage] = useState<HTMLImageElement | null>(null);
+  // persisted settings
+  const STORAGE_KEYS = {
+    uploadedUrl: 'pp_creator_uploadedUrl',
+    passportSettings: 'pp_creator_passportSettings',
+    cropRect: 'pp_creator_cropRect'
+  };
+
+  const [passportSize, setPassportSize] = useState<string>(() => {
+    try { const v = localStorage.getItem(STORAGE_KEYS.passportSettings); return v ? JSON.parse(v).size : '35x45'; } catch { return '35x45'; }
+  });
+  const [customWidthMm, setCustomWidthMm] = useState<number>(() => {
+    try { const v = localStorage.getItem(STORAGE_KEYS.passportSettings); return v ? JSON.parse(v).widthMm || 35 : 35; } catch { return 35; }
+  });
+  const [customHeightMm, setCustomHeightMm] = useState<number>(() => {
+    try { const v = localStorage.getItem(STORAGE_KEYS.passportSettings); return v ? JSON.parse(v).heightMm || 45 : 45; } catch { return 45; }
+  });
+  const [savedCropRect, setSavedCropRect] = useState<any>(() => {
+    try { const v = localStorage.getItem(STORAGE_KEYS.cropRect); return v ? JSON.parse(v) : null; } catch { return null; }
+  });
   
   // Cropper state
   const cropCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -125,6 +149,19 @@ export default function UploadImage({ onUploaded, onCropChange, onNext, cellBord
       });
   }, [initialUploadedUrl]);
 
+  // restore persisted uploaded url if present
+  useEffect(() => {
+    try {
+      const u = localStorage.getItem(STORAGE_KEYS.uploadedUrl);
+      if (u && !previewUrl) {
+        setPreviewUrl(u);
+        loadImageFromFile(u).then(setLoadedImage).catch(() => {});
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
   // Initialize crop state whenever a new image is loaded
   useEffect(() => {
     if (!loadedImage) return;
@@ -171,6 +208,16 @@ export default function UploadImage({ onUploaded, onCropChange, onNext, cellBord
     drawCropCanvas(loadedImage, 1, { x: (cropViewportW - baseW) / 2, y: (cropViewportH - baseH) / 2 });
     const rect = computeCropSourceRect();
     if (onCropChange) onCropChange(rect ? { ...rect, imgW, imgH } : null);
+    // persist latest crop
+    try {
+      if (rect) {
+        const saveObj = { ...rect, imgW, imgH };
+        localStorage.setItem(STORAGE_KEYS.cropRect, JSON.stringify(saveObj));
+        setSavedCropRect(saveObj);
+      }
+    } catch {
+      // ignore
+    }
   }, [loadedImage]);
 
   function drawCropCanvas(img: HTMLImageElement, scale: number, offset: { x: number; y: number }) {
@@ -332,6 +379,19 @@ export default function UploadImage({ onUploaded, onCropChange, onNext, cellBord
     e.preventDefault();
   }
 
+  // persist passport settings when they change
+  useEffect(() => {
+    try {
+      const obj = { size: passportSize, widthMm: customWidthMm, heightMm: customHeightMm };
+      localStorage.setItem(STORAGE_KEYS.passportSettings, JSON.stringify(obj));
+    } catch {}
+  }, [passportSize, customWidthMm, customHeightMm]);
+
+  // persist uploaded url when set
+  useEffect(() => {
+    try { if (previewUrl) localStorage.setItem(STORAGE_KEYS.uploadedUrl, previewUrl); } catch {}
+  }, [previewUrl]);
+
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
       <AppBar position="sticky" color="transparent" elevation={0} sx={{ backdropFilter: 'blur(6px)' }}>
@@ -345,6 +405,7 @@ export default function UploadImage({ onUploaded, onCropChange, onNext, cellBord
                 Passport Photo Generator
               </Typography>
             </Box>
+
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <span className="material-symbols-outlined" style={{ color: '#16a34a' }}>gpp_good</span>
@@ -365,12 +426,14 @@ export default function UploadImage({ onUploaded, onCropChange, onNext, cellBord
             </Typography>
           </Box>
 
-          <Paper
-            variant="outlined"
-            onDrop={onDrop}
-            onDragOver={onDragOver}
-            sx={{ p: 6, textAlign: 'center', position: 'relative' }}
-          >
+          {/* upload panel: hide when preview available */}
+          {!previewUrl && (
+            <Paper
+              variant="outlined"
+              onDrop={onDrop}
+              onDragOver={onDragOver}
+              sx={{ p: 6, textAlign: 'center', position: 'relative' }}
+            >
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
               <Avatar sx={{ bgcolor: 'primary.light', color: 'primary.main', width: 64, height: 64 }}>
                 <CloudUploadIcon size={32} />
@@ -418,59 +481,96 @@ export default function UploadImage({ onUploaded, onCropChange, onNext, cellBord
               onChange={onInputChange}
             />
           </Paper>
+          )}
 
           <Paper variant="outlined" sx={{ p: 4, textAlign: 'center' }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
               <Box sx={{ position: 'relative' }}>
                 <CloudUploadIcon size={48} />
               </Box>
-              <Typography variant="h6" sx={{ fontWeight: 700 }}>{processing ? 'Processing your photo...' : 'Idle'}</Typography>
-              <Typography color="text.secondary">{processing ? 'Detecting face boundaries & removing background' : 'Ready to accept an image'}</Typography>
 
-              {processing && <LinearProgress sx={{ width: '100%', mt: 2 }} />}
+                        {/* After upload: show settings panel + crop canvas */}
+                        {previewUrl && (
+                          <Paper variant="outlined" sx={{ p: 3 }}>
+                            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
+                              <Box sx={{ flex: '1 1 auto' }}>
+                                <Typography variant="subtitle1">Photo Settings</Typography>
+                                <FormControl fullWidth size="small" sx={{ mt: 1 }}>
+                                  <InputLabel id="passport-size-label">Passport size</InputLabel>
+                                  <Select labelId="passport-size-label" value={passportSize} label="Passport size" onChange={(e) => setPassportSize(String(e.target.value))}>
+                                    <MenuItem value="35x45">35 × 45 mm (Common)</MenuItem>
+                                    <MenuItem value="40x50">40 × 50 mm</MenuItem>
+                                    <MenuItem value="51x51">51 × 51 mm</MenuItem>
+                                    <MenuItem value="custom">Custom</MenuItem>
+                                  </Select>
+                                </FormControl>
 
-              {previewUrl && (
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="body2">Crop & position (use mouse drag + wheel)</Typography>
-                  <canvas
-                    ref={cropCanvasRef}
-                    width={cropViewportW}
-                    height={cropViewportH}
-                    onMouseDown={onCropMouseDown}
-                    onWheel={onCropWheel}
-                    style={{ display: 'block', marginTop: 8, borderRadius: 6, border: '1px solid rgba(0,0,0,0.08)', cursor: 'grab' }}
-                  />
-                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mt: 1 }}>
-                    <Typography variant="caption">Zoom</Typography>
-                    <input
-                      type="range"
-                      min={0.2}
-                      max={3}
-                      step={0.01}
-                      value={cropScale}
-                      onChange={(e) => {
-                        const s = Number(e.target.value);
-                        setCropScale(s);
-                        if (loadedImage) {
-                          drawCropCanvas(loadedImage, s, cropOffset);
-                          const rect = computeCropSourceRect();
-                          if (onCropChange && rect) onCropChange({ ...rect, imgW: loadedImage.naturalWidth, imgH: loadedImage.naturalHeight });
-                        }
-                      }}
-                      style={{ width: 180 }}
-                    />
-                    <Button size="small" onClick={() => {
-                      setCropScale(1);
-                      setCropOffset({ x: 0, y: 0 });
-                      if (loadedImage) {
-                        drawCropCanvas(loadedImage, 1, { x: 0, y: 0 });
-                        const rect = computeCropSourceRect();
-                        if (onCropChange && rect) onCropChange({ ...rect, imgW: loadedImage.naturalWidth, imgH: loadedImage.naturalHeight });
-                      }
-                    }}>Reset</Button>
-                  </Box>
-                </Box>
-              )}
+                                {passportSize === 'custom' && (
+                                  <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+                                    <TextField label="Width (mm)" size="small" value={customWidthMm} onChange={(e) => setCustomWidthMm(Number(e.target.value) || 0)} />
+                                    <TextField label="Height (mm)" size="small" value={customHeightMm} onChange={(e) => setCustomHeightMm(Number(e.target.value) || 0)} />
+                                  </Box>
+                                )}
+
+                                <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
+                                  <Button variant="contained" onClick={() => { setPreviewUrl(null); setLoadedImage(null); localStorage.removeItem(STORAGE_KEYS.uploadedUrl); }}>Change Photo</Button>
+                                </Box>
+                              </Box>
+
+                              <Box sx={{ width: { xs: '100%', sm: 340 } }}>
+                                <Typography variant="subtitle2">Crop</Typography>
+                                <canvas
+                                  ref={cropCanvasRef}
+                                  width={cropViewportW}
+                                  height={cropViewportH}
+                                  onMouseDown={onCropMouseDown}
+                                  onWheel={onCropWheel}
+                                  style={{ display: 'block', marginTop: 8, borderRadius: 6, border: '1px solid rgba(0,0,0,0.08)', cursor: 'grab', width: '100%' }}
+                                />
+
+                                <Box sx={{ mt: 1 }}>
+                                  <Typography variant="body2">Crop & position (use mouse drag + wheel)</Typography>
+                                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mt: 1 }}>
+                                    <Typography variant="caption">Zoom</Typography>
+                                    <input
+                                      type="range"
+                                      min={0.2}
+                                      max={3}
+                                      step={0.01}
+                                      value={cropScale}
+                                      onChange={(e) => {
+                                        const s = Number(e.target.value);
+                                        setCropScale(s);
+                                        if (loadedImage) {
+                                          drawCropCanvas(loadedImage, s, cropOffset);
+                                          const rect = computeCropSourceRect();
+                                          if (onCropChange && rect) onCropChange({ ...rect, imgW: loadedImage.naturalWidth, imgH: loadedImage.naturalHeight });
+                                        }
+                                      }}
+                                      style={{ width: 180 }}
+                                    />
+                                    <Button size="small" onClick={() => {
+                                      setCropScale(1);
+                                      setCropOffset({ x: 0, y: 0 });
+                                      if (loadedImage) {
+                                        drawCropCanvas(loadedImage, 1, { x: 0, y: 0 });
+                                        const rect = computeCropSourceRect();
+                                        if (onCropChange && rect) onCropChange({ ...rect, imgW: loadedImage.naturalWidth, imgH: loadedImage.naturalHeight });
+                                      }
+                                    }}>Reset</Button>
+                                  </Box>
+                                </Box>
+                              </Box>
+                            </Box>
+                          </Paper>
+                        )}
+              {processing && <>
+                <Typography variant="h6" sx={{ fontWeight: 700 }}>Processing your photo...</Typography>
+                <Typography color="text.secondary">Detecting face boundaries & removing background</Typography>
+                <LinearProgress sx={{ width: '100%', mt: 2 }} />
+              </>}
+
+              {/* previewUrl is used elsewhere; the single crop canvas + zoom controls live in the settings column now */}
 
                 {/* Next button to move to Print Preview after user positions/zooms the crop */}
                 <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center', gap: 2 }}>

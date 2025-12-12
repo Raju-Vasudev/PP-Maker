@@ -10,6 +10,10 @@ import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Switch from '@mui/material/Switch';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
 
 type CropRect = { srcX: number; srcY: number; srcW: number; srcH: number; imgW: number; imgH: number };
 
@@ -25,6 +29,18 @@ interface PrintLayoutPreviewProps {
   setCellBorderStyle: (s: 'solid' | 'dashed') => void;
   cellBorderColor: string;
   setCellBorderColor: (c: string) => void;
+}
+
+const DEFAULT_PASSPORT_SETTINGS = { size: '35x45', widthMm: 35, heightMm: 45 } as const;
+const PASSPORT_SIZE_OPTIONS = {
+  '35x45': { label: '35 × 45 mm (Common)', widthMm: 35, heightMm: 45 },
+  '40x50': { label: '40 × 50 mm', widthMm: 40, heightMm: 50 },
+  '51x51': { label: '51 × 51 mm', widthMm: 51, heightMm: 51 },
+} as const;
+type PassportSizeKey = keyof typeof PASSPORT_SIZE_OPTIONS;
+
+function isStandardPassportSize(value: string): value is PassportSizeKey {
+  return Object.prototype.hasOwnProperty.call(PASSPORT_SIZE_OPTIONS, value);
 }
 
 export default function PrintLayoutPreview({
@@ -46,6 +62,102 @@ export default function PrintLayoutPreview({
   const [marginMm, setMarginMm] = useState<number>(5);
   const [processing, setProcessing] = useState(false);
   const [sheetUrl, setSheetUrl] = useState<string | null>(null);
+
+  const STORAGE_KEYS = {
+    uploadedUrl: 'pp_creator_uploadedUrl',
+    cropRect: 'pp_creator_cropRect',
+    passportSettings: 'pp_creator_passportSettings'
+  } as const;
+
+  const [resolvedPassport, setResolvedPassport] = useState<{ size: string; widthMm: number; heightMm: number }>(() => ({ ...DEFAULT_PASSPORT_SETTINGS }));
+  const [passportWidthInput, setPassportWidthInput] = useState<string>(() => DEFAULT_PASSPORT_SETTINGS.widthMm.toString());
+  const [passportHeightInput, setPassportHeightInput] = useState<string>(() => DEFAULT_PASSPORT_SETTINGS.heightMm.toString());
+
+  useEffect(() => {
+    try {
+      const p = localStorage.getItem(STORAGE_KEYS.passportSettings);
+      if (p) {
+        const parsed = JSON.parse(p) as { size?: string; widthMm?: number; heightMm?: number };
+        setResolvedPassport({
+          size: parsed.size ?? DEFAULT_PASSPORT_SETTINGS.size,
+          widthMm: parsed.widthMm ?? DEFAULT_PASSPORT_SETTINGS.widthMm,
+          heightMm: parsed.heightMm ?? DEFAULT_PASSPORT_SETTINGS.heightMm
+        });
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
+    setPassportWidthInput(resolvedPassport.widthMm.toString());
+    setPassportHeightInput(resolvedPassport.heightMm.toString());
+  }, [resolvedPassport.widthMm, resolvedPassport.heightMm]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.passportSettings, JSON.stringify(resolvedPassport));
+    } catch (e) {
+      // ignore
+    }
+  }, [resolvedPassport]);
+
+  function handlePassportSizeSelection(value: string) {
+    if (isStandardPassportSize(value)) {
+      const preset = PASSPORT_SIZE_OPTIONS[value];
+      setResolvedPassport({ size: value, widthMm: preset.widthMm, heightMm: preset.heightMm });
+      return;
+    }
+    setResolvedPassport((prev) => ({ ...prev, size: 'custom' }));
+  }
+
+  function handlePassportWidthChange(value: string) {
+    setPassportWidthInput(value);
+    const parsed = parseFloat(value);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      setResolvedPassport((prev) => ({ ...prev, size: 'custom', widthMm: parsed }));
+    }
+  }
+
+  function handlePassportHeightChange(value: string) {
+    setPassportHeightInput(value);
+    const parsed = parseFloat(value);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      setResolvedPassport((prev) => ({ ...prev, size: 'custom', heightMm: parsed }));
+    }
+  }
+
+  const [resolvedUploadedUrl, setResolvedUploadedUrl] = useState<string | null>(uploadedUrl ?? null);
+  const [resolvedCropRect, setResolvedCropRect] = useState<CropRect | null>(cropRect ?? null);
+
+  useEffect(() => {
+    if (uploadedUrl) {
+      setResolvedUploadedUrl(uploadedUrl);
+      return;
+    }
+    try {
+      const u = localStorage.getItem(STORAGE_KEYS.uploadedUrl);
+      if (u) setResolvedUploadedUrl(u);
+    } catch (e) {
+      // ignore
+    }
+  }, [uploadedUrl]);
+
+  useEffect(() => {
+    if (cropRect) {
+      setResolvedCropRect(cropRect);
+      return;
+    }
+    try {
+      const c = localStorage.getItem(STORAGE_KEYS.cropRect);
+      if (c) {
+        const parsed = JSON.parse(c) as CropRect;
+        setResolvedCropRect(parsed);
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, [cropRect]);
 
   // derive preview page size (inches/mm) from layout selection
   const pageWidthIn = layout === 'horizontal' ? 6 : 4;
@@ -71,13 +183,14 @@ export default function PrintLayoutPreview({
   }
 
   async function generateFromUploaded() {
-    if (!uploadedUrl) {
+    const uUrl = resolvedUploadedUrl;
+    if (!uUrl) {
       setSheetUrl(null);
       return;
     }
     setProcessing(true);
     try {
-      const img = await loadImageFromFile(uploadedUrl);
+      const img = await loadImageFromFile(uUrl);
       const DPI = 300;
       const sheetW = (layout === 'horizontal' ? 6 : 4) * DPI;
       const sheetH = (layout === 'horizontal' ? 4 : 6) * DPI;
@@ -87,8 +200,16 @@ export default function PrintLayoutPreview({
       const marginPx = Math.round((marginMm / 25.4) * DPI);
       const usableW = sheetW - marginPx * 2 - (cols - 1) * gutterPx;
       const usableH = sheetH - marginPx * 2 - (rows - 1) * gutterPx;
-      const cellW = Math.floor(usableW / cols);
-      const cellH = Math.floor(usableH / rows);
+      const passportPxW = Math.max(0, Math.round((resolvedPassport.widthMm / 25.4) * DPI));
+      const passportPxH = Math.max(0, Math.round((resolvedPassport.heightMm / 25.4) * DPI));
+      const maxCellW = usableW / cols;
+      const maxCellH = usableH / rows;
+      const cellW = passportPxW > 0 ? Math.min(passportPxW, maxCellW) : maxCellW;
+      const cellH = passportPxH > 0 ? Math.min(passportPxH, maxCellH) : maxCellH;
+      const totalGridW = cols * cellW + (cols - 1) * gutterPx;
+      const totalGridH = rows * cellH + (rows - 1) * gutterPx;
+      const offsetX = marginPx + Math.max(0, (usableW - totalGridW) / 2);
+      const offsetY = marginPx + Math.max(0, (usableH - totalGridH) / 2);
 
       const canvas = document.createElement('canvas');
       canvas.width = sheetW;
@@ -103,12 +224,14 @@ export default function PrintLayoutPreview({
 
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
-          const x = marginPx + c * (cellW + gutterPx);
-          const y = marginPx + r * (cellH + gutterPx);
+          const x = offsetX + c * (cellW + gutterPx);
+          const y = offsetY + r * (cellH + gutterPx);
 
-          if (cropRect && cropRect.srcW > 0 && cropRect.srcH > 0) {
-            let { srcX, srcY, srcW, srcH } = cropRect;
-            const destAspect = cellW / cellH;
+            if (resolvedCropRect && resolvedCropRect.srcW > 0 && resolvedCropRect.srcH > 0) {
+            let { srcX, srcY, srcW, srcH } = resolvedCropRect;
+            const targetW = cellW;
+            const targetH = cellH;
+            const destAspect = targetW / targetH;
             if (scaleMode === 'cover') {
               const srcAspect = srcW / srcH;
               if (srcAspect > destAspect) {
@@ -120,9 +243,11 @@ export default function PrintLayoutPreview({
                 srcY = srcY + (srcH - newSrcH) / 2;
                 srcH = newSrcH;
               }
-              ctx.drawImage(img, srcX, srcY, srcW, srcH, x, y, cellW, cellH);
+              const drawX = x + (cellW - targetW) / 2;
+              const drawY = y + (cellH - targetH) / 2;
+              ctx.drawImage(img, srcX, srcY, srcW, srcH, drawX, drawY, targetW, targetH);
             } else {
-              const scaleDest = Math.min(cellW / srcW, cellH / srcH);
+              const scaleDest = Math.min(targetW / srcW, targetH / srcH);
               const drawW = srcW * scaleDest;
               const drawH = srcH * scaleDest;
               const destX = x + (cellW - drawW) / 2;
@@ -130,15 +255,18 @@ export default function PrintLayoutPreview({
               ctx.drawImage(img, srcX, srcY, srcW, srcH, destX, destY, drawW, drawH);
             }
           } else {
+            // when no cropRect, respect passport target box if present
+            const tW = cellW;
+            const tH = cellH;
             if (scaleMode === 'cover') {
-              const scale = Math.max(cellW / imgW, cellH / imgH);
+              const scale = Math.max(tW / imgW, tH / imgH);
               const drawW = imgW * scale;
               const drawH = imgH * scale;
-              const dx = x + (cellW - drawW) / 2;
-              const dy = y + (cellH - drawH) / 2;
+              const dx = x + (cellW - tW) / 2 + (tW - drawW) / 2;
+              const dy = y + (cellH - tH) / 2 + (tH - drawH) / 2;
               ctx.drawImage(img, dx, dy, drawW, drawH);
             } else {
-              const scale = Math.min(cellW / imgW, cellH / imgH);
+              const scale = Math.min(tW / imgW, tH / imgH);
               const drawW = imgW * scale;
               const drawH = imgH * scale;
               const dx = x + (cellW - drawW) / 2;
@@ -209,7 +337,7 @@ export default function PrintLayoutPreview({
           </Stack>
 
           <Stack direction="row" spacing={1} alignItems="center">
-            <Button variant="outlined" onClick={() => onBack && onBack()}>Edit Crop</Button>
+            <Button variant="outlined" onClick={() => onBack && onBack()}>Back</Button>
             <Stack direction="row" spacing={1} alignItems="center">
               <span className="material-symbols-outlined" style={{ color: '#16a34a' }}>check</span>
               <Typography variant="caption">300 DPI (High Quality)</Typography>
@@ -226,6 +354,44 @@ export default function PrintLayoutPreview({
             <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
               <Button variant={scaleMode === 'contain' ? 'contained' : 'outlined'} onClick={() => setScaleMode('contain')}>Fit</Button>
               <Button variant={scaleMode === 'cover' ? 'contained' : 'outlined'} onClick={() => setScaleMode('cover')}>Fill</Button>
+            </Stack>
+
+            <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+              <InputLabel id="photo-size-label">Photo size</InputLabel>
+              <Select
+                labelId="photo-size-label"
+                value={resolvedPassport.size}
+                label="Photo size"
+                onChange={(e) => handlePassportSizeSelection(e.target.value)}
+              >
+                {Object.entries(PASSPORT_SIZE_OPTIONS).map(([key, option]) => (
+                  <MenuItem key={key} value={key}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+                <MenuItem value="custom">Custom</MenuItem>
+              </Select>
+            </FormControl>
+
+            <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+              <TextField
+                label="Width (mm)"
+                type="number"
+                size="small"
+                value={passportWidthInput}
+                onChange={(e) => handlePassportWidthChange(e.target.value)}
+                inputProps={{ step: 0.1, min: 1 }}
+                fullWidth
+              />
+              <TextField
+                label="Height (mm)"
+                type="number"
+                size="small"
+                value={passportHeightInput}
+                onChange={(e) => handlePassportHeightChange(e.target.value)}
+                inputProps={{ step: 0.1, min: 1 }}
+                fullWidth
+              />
             </Stack>
 
             <TextField label="Gutter (mm)" type="number" value={gutterMm} onChange={(e) => setGutterMm(Number(e.target.value) || 0)} fullWidth sx={{ mb: 2 }} />
@@ -249,7 +415,6 @@ export default function PrintLayoutPreview({
             <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
               <Button onClick={generateFromUploaded} disabled={!uploadedUrl || processing} variant="contained" fullWidth>Generate 4R (8-up)</Button>
               <Button onClick={downloadSheet} disabled={!sheetUrl} variant="outlined">Download</Button>
-              <Button onClick={printSheet} disabled={!sheetUrl} variant="outlined">Print</Button>
             </Stack>
           </Box>
         </Box>
@@ -269,6 +434,13 @@ export default function PrintLayoutPreview({
 
               {sheetUrl && (
                 <Box component="img" src={sheetUrl} alt="generated sheet" sx={{ width: '100%', height: '100%', display: 'block', borderRadius: 1, objectFit: 'contain' }} />
+              )}
+
+              {/* Visual indicator of selected passport size within preview */}
+              {resolvedPassport && (
+                <Box sx={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', pointerEvents: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Box sx={{ width: `${resolvedPassport.widthMm}mm`, height: `${resolvedPassport.heightMm}mm`, border: '1px dashed rgba(0,0,0,0.45)', bgcolor: 'rgba(0,0,0,0.02)', borderRadius: 0 }} />
+                </Box>
               )}
             </Paper>
           </Box>
